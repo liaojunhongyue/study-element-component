@@ -83,11 +83,15 @@ export default {
   computed: {
     // 判断是不是按钮组
     isGroup() {
+      // parent 变量保存组件的父级元素信息
       let parent = this.$parent;
       while (parent) {
         if (parent.$options.componentName !== 'ElRadioGroup') {
+          // 如果父级的 componentName 不是 ElRadioGroup 则继续向上查找
           parent = parent.$parent;
         } else {
+          // 如果父级的 componentName 是 ElRadioGroup
+          // 用变量 _radioGroup 保存父级信息，并且返回 true
           this._radioGroup = parent;
           return true;
         }
