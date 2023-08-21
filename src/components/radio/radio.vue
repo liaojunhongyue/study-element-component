@@ -81,6 +81,7 @@ export default {
   },
   
   computed: {
+    // 判断是不是按钮组
     isGroup() {
       let parent = this.$parent;
       while (parent) {
@@ -93,16 +94,20 @@ export default {
       }
       return false;
     },
+    // input 绑定的 v-model
     model: {
       get() {
+        // 判断是不是按钮组，如果是按钮组，取按钮组的 value 值，否则取当前组件的 value 值
         return this.isGroup ? this._radioGroup.value : this.value;
       },
       set(val) {
+        // 当值改变时，判断是不是按钮组，如果是按钮组，则触发按钮组组件的 input 事件，否则触发当前组件的 input 事件
         if (this.isGroup) {
           this.dispatch('ElRadioGroup', 'input', [val]);
         } else {
           this.$emit('input', val);
         }
+        // 设置当前 radio 的 checked 属性，如果 model 与 label 相等，则为选中
         this.$refs.radio && (this.$refs.radio.checked = this.model === this.label);
       }
     },
@@ -128,8 +133,9 @@ export default {
         ? this._radioGroup.disabled || this.disabled || (this.elForm || {}).disabled
         : this.disabled || (this.elForm || {}).disabled;;
     },
+    // 判断是否用 tab 键可以聚焦
     tabIndex() {
-      console.log('tabIbdex')
+      // 如果是禁用的，或者是按钮组且当前选中的按钮不是这个，则不能聚焦，否则可以聚焦
       return (this.isDisabled || (this.isGroup && this.model !== this.label)) ? -1 : 0;
     }
   },
@@ -137,6 +143,7 @@ export default {
   methods: {
     handleChange() {
       this.$nextTick(() => {
+        // 给组件增加 change 事件
         this.$emit('change', this.model);
         this.isGroup && this.dispatch('ElRadioGroup', 'handleChange', this.model);
       })
