@@ -80,48 +80,58 @@ export default {
   
   data() {
     return {
-      selfModel: false,
-      focus: false,
-      isLimitExceeded: false
+      selfModel: false, // 组件内部的值
+      focus: false, // focus 状态
+      isLimitExceeded: false // 是否超出可选数量限制
     }
   },
   
   computed: {
     model: {
       get() {
+        // 判断是否是按钮组，如果是按钮组，则获取按钮组的值，否则获取 value，如果 value 是 undefined，则获取组件内部的 selfModel 值
         return this.isGroup
           ? this.store : this.value !== undefined
             ? this.value : this.selfModel;
       },
       set(val) {
+        // 先来判断是否是按钮组
         if (this.isGroup) {
+          // 是按钮组的情况下
+          // 如果当前选中的数量小于最小的限制数量，则将 isLimitExceeded 设置为 true，表示已选数量与限制数量不符
           (this._checkboxGroup.min !== undefined &&
             val.length < this._checkboxGroup.min &&
             (this.isLimitExceeded = true));
-
+          // 如果当前选中的数量大于最大的限制数量，则将 isLimitExceeded 设置为 true，表示已选数量与限制数量不符
           (this._checkboxGroup.max !== undefined &&
             val.length > this._checkboxGroup.max &&
             (this.isLimitExceeded = true));
-
+          // 如果 isLimitExceeded 为 false，则出发 checkbox-grouo 的 input 事件
           this.isLimitExceeded === false &&
           this.dispatch('ElCheckboxGroup', 'input', [val]);
         } else {
+          // 不是按钮组的情况，触发父组件的 input 事件，并且将组件内部的 selfModel 变量设置为当前的 value 值
           this.$emit('input', val);
           this.selfModel = val;
         }
       }
     },
-    
+    // 是否选中
     isChecked() {
-      if ({}.toString.call(this.model) === '[object Boolean]') {
+      // 判断 model 值的类型，根据类型判断是否选中
+      if ({}.toString.call(this.model) === '[object model]') {
+        // 如果是布尔类型，则直接返回 model 的值用来判断是否选中
         return this.model;
       } else if (Array.isArray(this.model)) {
+        // 如果是数组，则判断当前 model 数组是否包含当前 label 的值，如果包含，则选中
         return this.model.indexOf(this.label) > -1
       } else if (this.model !== null && this.model !== undefined) {
+        // 如果不是布尔类型，也不是数组类型，且 model 不为 null 和 undefined
+        // 则判断 model 与 trueLabel（trueLabel是选中时显示的值）是否相等，如果相等，则选中
         return this.model === this.trueLabel;
       }
     },
-    
+    // 判断是否被包含在了按钮组里面，如果外层有 checkbox-group 组件，则说明被包含在按钮组里面
     isGroup() {
       let parent = this.$parent;
       while (parent) {
@@ -136,11 +146,14 @@ export default {
     },
     
     store() {
+      // 如果是按钮组，则返回按钮组的 value，否则返回组件的 value
       return this._checkboxGroup ? this._checkboxGroup.value : this.value;
     },
-    
+    // 判断是否由于不符合可选数量造成禁用
     isLimitDisabled() {
       const { max, min } = this._checkboxGroup;
+      // 当已选数量大于等于最大限制数量时，禁用按钮组中没选中的 checkbox
+      // 当已选数量小于等于最小限制数量时，禁用按钮组中已选中的 checkbox
       return !!(max || min) &&
         (this.model.length >= max && !this.isChecked) ||
         (this.model.length <= min && this.isChecked);
@@ -185,27 +198,36 @@ export default {
   },
   
   methods: {
+    // 如果最开始是选中状态，则将值存储到 model 变量中
     addToStore() {
       if (
         Array.isArray(this.model) &&
         this.model.indexOf(this.label) === -1
       ) {
+        // model 为数组，并且 model 不包含 label 的值，则将 label 的值 push 到 model 数组中
         this.model.push(this.label);
       } else {
+        // model 不是数组，如果有 true-label，则设置为 true-label 的值，否则设置为 true
         this.model = this.trueLabel || true;
       }
     },
+    // 触发 change 事件
     handleChange(ev) {
+      // 如果不符合可选的数量限制，则直接 return
       if (this.isLimitExceeded) return;
       let value;
       if (ev.target.checked) {
+        // 如果选中了，存在 true-label 则设置为 true-label，否则设置为 true
         value = this.trueLabel === undefined ? true : this.trueLabel;
       } else {
+        // 如果没有选中，存在 false-label 则设置为 false-label，否则设置为 false
         value = this.falseLabel === undefined ? false : this.falseLabel;
       }
+      // 触发父组件的 change 事件
       this.$emit('change', value, ev);
       this.$nextTick(() => {
         if (this.isGroup) {
+          // 如果被包含在按钮组里面，则触发按钮组的 change 事件
           this.dispatch('ElCheckboxGroup', 'change', [this._checkboxGroup.value]);
         }
       });
@@ -213,11 +235,13 @@ export default {
   },
   
   created() {
+    // 如果最开始是选中状态，则将值存储到 model 变量中
     this.checked && this.addToStore();
   },
   
   mounted() {
     if (this.indeterminate) {
+      // 屏幕阅读器的处理，如果是半选状态，则增加 aria-controls 属性
       this.$el.setAttribute('aria-controls', this.controls);
     }
   },
