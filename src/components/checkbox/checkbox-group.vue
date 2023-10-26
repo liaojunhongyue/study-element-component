@@ -20,13 +20,13 @@ export default {
   componentName: 'ElCheckboxGroup',
   
   props: {
-    value: {},
+    value: {}, // checkbox-group 的 value 值
     disabled: Boolean,
-    min: Number,
-    max: Number,
+    min: Number, // 最小限制数量
+    max: Number, // 最大限制数量
     size: String,
-    fill: String,
-    textColor: String
+    fill: String, // checkbox-button 组件样式用到的 fill 填充
+    textColor: String // checkbox-button 组件样式用到的 textColor 文字颜色
   },
   
   computed: {
