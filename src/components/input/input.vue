@@ -57,6 +57,7 @@
               :class="suffixIcon">
             </i>
           </template>
+          <!-- @mousedown.prevent 用于阻止输入框失去焦点 -->
           <i v-if="showClear"
             class="el-input__icon el-icon-circle-close el-input__clear"
             @mousedown.prevent
@@ -133,7 +134,7 @@ export default {
       textareaCalcStyle: {},
       hovering: false,
       focused: false,
-      isComposing: false,
+      isComposing: false, // 是否处于拼音输入状态
       passwordVisible: false
     }
   },
@@ -209,23 +210,30 @@ export default {
       // 优先级：组件本身的 disabled > Form 的 disabled
       return this.disabled || (this.elForm || {}).disabled;
     },
+    // 监听 value 值的变化，如果 value 为 null 或者 undefined，则返回空，否则返回 value 转化为字符串后的值
     nativeInputValue() {
       return this.value === null || this.value === undefined ? '' : String(this.value);
     },
+    // 显示可清空图标
     showClear() {
+      // 在可清空属性设置为 true ，且 input 有值且不为禁用或只读状态，且鼠标移入输入框内部或输入框聚焦，则展示可清空图标
       return this.clearable &&
         !this.inputDisabled &&
         !this.readonly &&
         this.nativeInputValue &&
         (this.focused || this.hovering);
     },
+    // 判断密码图表在哪种情况下显示
     showPwdVisible() {
+      // 当显示密码图标属性被设置为 true 时，且输入框不属于禁用、只读状态，且输入框有值或者输入框在聚焦的情况下，显示密码图标
       return this.showPassword &&
         !this.inputDisabled &&
         !this.readonly &&
         (!!this.nativeInputValue || this.focused);
     },
+    // 判断字数统计属性在何种情况下显示
     isWordLimitVisible() {
+      // 当showWordLimit属性为true，且有最大字数限制，且类型为 text 或 textarea，且不为禁用、只读、密码的状态时，显示字数统计
       return this.showWordLimit &&
         this.$attrs.maxlength &&
         (this.type === 'text' || this.type === 'textarea') &&
@@ -233,9 +241,11 @@ export default {
         !this.readonly &&
         !this.showPassword;
     },
+    // 设置计算属性 upperLimit 来获取 maxlength 的值
     upperLimit() {
       return this.$attrs.maxlength;
     },
+    // 获取 value 值的长度
     textLength() {
       if (typeof this.value === 'number') {
         return String(this.value).length;
@@ -243,7 +253,9 @@ export default {
 
       return (this.value || '').length;
     },
+    // 判断字数是否超出限制
     inputExceed() {
+      // 如果显示字数统计且字数超限，则说明字数超出限制
       return this.isWordLimitVisible &&
         (this.textLength > this.upperLimit);
     }
@@ -257,6 +269,7 @@ export default {
         this.dispatch('ElFormItem', 'el.form.change', [val]);
       }
     },
+    // 监听 value 值的变化，给 input 赋值
     nativeInputValue() {
       this.setNativeInputValue();
     },
@@ -296,13 +309,18 @@ export default {
       // 将计算后的结果赋值给 textareaCalcStyle 变量
       this.textareaCalcStyle = calcTextareaHeight(this.$refs.textarea, minRows, maxRows);
     },
+    // 获取 input
     getInput() {
       return this.$refs.input || this.$refs.textarea;
     },
+    // 设置 input 元素的值
     setNativeInputValue() {
+      // 获取到 input 元素
       const input = this.getInput();
       if (!input) return;
+      // 如果 input 之前的 value 值与改变后的值相同，则 return
       if (input.value === this.nativeInputValue) return;
+      // 将 input 的值赋值为最新的值
       input.value = this.nativeInputValue;
     },
     handleBlur(event) {
@@ -317,26 +335,40 @@ export default {
       this.focused = true;
       this.$emit('focus', event);
     },
+    // 输入法编辑器开始新的输入合成时（开始输入拼音时）触发
     handleCompositionStart(event) {
+      // 触发父级的 compositionstart 事件
       this.$emit('compositionstart', event);
+      // 将 isComposing 设置为 true，说明处于拼音输入的状态
       this.isComposing = true;
     },
+    // 组合输入更新时（每输入一下拼音时）都会触发
     handleCompositionUpdate(event) {
+      // 触发父级的 compositionupdate 事件
       this.$emit('compositionupdate', event);
+      // 将 isComposing 设置为 true，说明处于拼音输入的状态
       this.isComposing = true;
     },
+    // 组合输入结束时（拼音输入结束，关闭中文输入法时）触发
     handleCompositionEnd(event) {
+      // 触发父级的 compositionend 事件
       this.$emit('compositionend', event);
       if (this.isComposing) {
+        // 将 isComposing 设置为 false，说明此时已经不是拼音输入的状态
         this.isComposing = false;
+        // 触发 handleInput 方法，给 input 赋值
         this.handleInput(event);
       }
     },
+    // 触发 input 事件
     handleInput(event) {
+      // 如果正在输入拼音，直接 return
       if (this.isComposing) return;
       // 解决 IE 浏览器中 Input 初始化自动执行的问题
       if (event.target.value === this.nativeInputValue) return;
+      // 触发父级的 input 事件
       this.$emit('input', event.target.value);
+      // 给 input 重新赋值
       this.$nextTick(this.setNativeInputValue);
     },
     handleChange(event) {
@@ -375,9 +407,13 @@ export default {
       this.calcIconOffset('prefix');
       this.calcIconOffset('suffix');
     },
+    // 清空操作
     clear() {
+      // 触发父级的 input 事件，并且将值传为空，由于父级用 v-model 语法糖绑定值，则可清空组件的值
       this.$emit('input', '');
+      // 触发父级的 change 事件
       this.$emit('change', '');
+      // 触发父级的 clear 事件
       this.$emit('clear');
     },
     handlePasswordVisible() {
@@ -398,6 +434,7 @@ export default {
   },
   
   mounted() {
+    // 设置 input 元素的值
     this.setNativeInputValue();
     this.resizeTextarea();
     this.updateIconOffset();
