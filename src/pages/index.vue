@@ -62,6 +62,12 @@
         <div class="item" @click="goPage('/page/form')">1. Form 组件案例</div>
       </div>
     </section>
+    <section>
+      <p class="title">Scrollbar：</p>
+      <div class="list">
+        <div class="item" @click="goPage('/page/scrollbar')">1. Scrollbar 组件案例</div>
+      </div>
+    </section>
   </div>
 </template>
 <script>

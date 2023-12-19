@@ -31,6 +31,8 @@ import input from '../pages/input/input';
 import inputNumber from '../pages/input-number/inputNumber';
 // Form 组件案例
 import form from '../pages/form/form';
+// Scrollbar 组件案例
+import scrollbar from '../pages/scrollbar/scrollbar';
 
 
 Vue.use(Router)
@@ -159,6 +161,12 @@ export default new Router({
       path: '/page/form',
       name: 'form',
       component: form
+    },
+    // Scrollbar
+    {
+      path: '/page/scrollbar',
+      name: 'scrollbar',
+      component: scrollbar
     },
   ]
 })

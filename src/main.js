@@ -18,6 +18,7 @@ import Input from './components/input/input';
 import InputNumber from './components/input-number/input-number';
 import Form from './components/form/form';
 import FormItem from './components/form/form-item';
+import Scrollbar from './components/scrollbar/src/main.js';
 
 const components = [
   Radio,
@@ -29,7 +30,8 @@ const components = [
   Input,
   InputNumber,
   Form,
-  FormItem
+  FormItem,
+  Scrollbar
 ]
 
 components.forEach(component => {
